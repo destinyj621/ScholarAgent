@@ -1,0 +1,51 @@
+.container {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0f172a;
+  margin-top: 1.5rem;
+}
+
+.header {
+  padding: 0.6rem 1rem;
+  background: #1e293b;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+.output {
+  padding: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
+.stageBlock {
+  margin-bottom: 1rem;
+}
+
+.stageLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 0.4rem;
+}
+
+.stageLabel.active {
+  color: #818cf8;
+}
+
+.stageText {
+  font-family: "Fira Code", "Cascadia Code", monospace;
+  font-size: 0.8rem;
+  color: #e2e8f0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: 0;
+  line-height: 1.6;
+}
