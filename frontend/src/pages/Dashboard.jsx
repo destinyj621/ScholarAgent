@@ -1,6 +1,7 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AgentStream from "../components/AgentStream";
+import { api } from "../lib/api";
 import styles from "./Dashboard.module.css";
 
 const API = import.meta.env.VITE_API_URL || "";
@@ -24,10 +25,24 @@ export default function Dashboard() {
   const [warnings, setWarnings] = useState([]);
   const [pipelineError, setPipelineError] = useState(null);
 
+  // Daily check-in
+  const [checkinBlocks, setCheckinBlocks] = useState(null); // null = not loaded yet
+  const [checkinResponses, setCheckinResponses] = useState({}); // block_id -> {status, hours?, percent?}
+  const [checkinDone, setCheckinDone] = useState(false);
+  const [checkinWarnings, setCheckinWarnings] = useState([]);
+
   // PDF / context uploads for vague assignments
   const [needsInput, setNeedsInput] = useState(null); // {session_id, assignments}
   const [contextMap, setContextMap] = useState({}); // uid -> description
+  const [teamDetails, setTeamDetails] = useState({}); // uid -> {meeting_date, tasks, split}
   const pdfInputRef = useRef(null);
+
+  // Load yesterday's check-in on mount
+  useEffect(() => {
+    api("/checkin/pending")
+      .then((d) => setCheckinBlocks(d.blocks || []))
+      .catch(() => setCheckinBlocks([]));
+  }, []);
 
   async function handleIngest(e) {
     e.preventDefault();
@@ -116,11 +131,83 @@ export default function Dashboard() {
     }, {});
   }
 
-  const canGenerate = events && events.length > 0 && !streaming && !needsInput;
+  async function submitCheckin() {
+    const items = (checkinBlocks || []).map((b) => {
+      const resp = checkinResponses[b.id] || { status: "done" };
+      return { block_id: b.id, ...resp };
+    });
+    try {
+      const result = await api("/checkin", { body: { items } });
+      setCheckinDone(true);
+      if (result.needs_rebuild) {
+        setCheckinWarnings([{ message: "Schedule rebuilt from today based on your check-in." }]);
+      }
+    } catch {
+      setCheckinDone(true);
+    }
+  }
+
+  const checkinPending = checkinBlocks && checkinBlocks.length > 0 && !checkinDone;
+  const canGenerate = events && events.length > 0 && !streaming && !needsInput && !checkinPending;
 
   return (
     <div className={styles.page}>
       <h1 className={styles.title}>Dashboard</h1>
+
+      {/* Daily Check-In Banner */}
+      {checkinPending && (
+        <section className={styles.card}>
+          <h2 className={styles.sectionTitle}>Daily Check-In</h2>
+          <p className={styles.hint}>What happened with yesterday's scheduled work?</p>
+          {checkinBlocks.map((b) => {
+            const resp = checkinResponses[b.id] || {};
+            return (
+              <div key={b.id} className={styles.checkinBlock}>
+                <div className={styles.checkinMeta}>
+                  <strong>{b.task}</strong>
+                  <span className={styles.muted}>{b.course} &middot; {b.duration_minutes} min</span>
+                </div>
+                <div className={styles.checkinBtns}>
+                  {["done", "partial", "skipped"].map((s) => (
+                    <button
+                      key={s}
+                      className={`${styles.checkinBtn} ${resp.status === s ? styles.checkinSelected : ""}`}
+                      onClick={() => setCheckinResponses((p) => ({ ...p, [b.id]: { ...p[b.id], status: s } }))}
+                    >
+                      {s === "done" ? "Done" : s === "partial" ? "Partially Done" : "Didn't Do It"}
+                    </button>
+                  ))}
+                </div>
+                {resp.status === "partial" && (
+                  <div className={styles.checkinExtra}>
+                    <label className={styles.label}>
+                      Hours worked
+                      <input type="number" min="0" step="0.25" className={styles.inputSm}
+                        value={resp.hours || ""}
+                        onChange={(e) => setCheckinResponses((p) => ({ ...p, [b.id]: { ...p[b.id], hours_worked: parseFloat(e.target.value) } }))}
+                      />
+                    </label>
+                    <label className={styles.label}>
+                      % Complete — {resp.percent_complete ?? 0}%
+                      <input type="range" min="0" max="100"
+                        value={resp.percent_complete ?? 0}
+                        onChange={(e) => setCheckinResponses((p) => ({ ...p, [b.id]: { ...p[b.id], percent_complete: Number(e.target.value) } }))}
+                        className={styles.slider}
+                      />
+                    </label>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {checkinWarnings.map((w, i) => (
+            <p key={i} className={styles.infoMsg}>{w.message}</p>
+          ))}
+          <button className={`${styles.btn} ${styles.primary}`} onClick={submitCheckin}>
+            Submit Check-In
+          </button>
+        </section>
+      )}
 
       {/* ICS Input */}
       <section className={styles.card}>
@@ -199,6 +286,40 @@ export default function Dashboard() {
               </div>
               {contextMap[a.uid || a.title] ? (
                 <p className={styles.contextProvided}>Context received.</p>
+              ) : a.needs_input_reason === "team_project" ? (
+                <div className={styles.contextActions}>
+                  <p className={styles.hint}>Answer these questions so the agent can estimate your share of the work.</p>
+                  {[
+                    { key: "meeting_date", label: "When is your next team meeting?", type: "date" },
+                    { key: "tasks", label: "What do you need done before that meeting?", type: "text" },
+                    { key: "split", label: "How is work split across the team?", type: "text" },
+                  ].map(({ key, label, type }) => (
+                    <label key={key} className={styles.label}>
+                      {label}
+                      <input
+                        type={type}
+                        className={styles.input}
+                        value={teamDetails[a.uid || a.title]?.[key] || ""}
+                        onChange={(e) =>
+                          setTeamDetails((p) => ({
+                            ...p,
+                            [a.uid || a.title]: { ...p[a.uid || a.title], [key]: e.target.value },
+                          }))
+                        }
+                      />
+                    </label>
+                  ))}
+                  <button
+                    className={styles.btn}
+                    onClick={() => {
+                      const details = teamDetails[a.uid || a.title] || {};
+                      const summary = `Meeting: ${details.meeting_date || "TBD"}. Pre-meeting tasks: ${details.tasks || "TBD"}. Work split: ${details.split || "TBD"}.`;
+                      setContextMap((p) => ({ ...p, [a.uid || a.title]: summary }));
+                    }}
+                  >
+                    Save Team Details
+                  </button>
+                </div>
               ) : (
                 <div className={styles.contextActions}>
                   <label className={styles.fileLabel}>

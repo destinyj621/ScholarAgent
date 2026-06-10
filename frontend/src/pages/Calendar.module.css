@@ -1,0 +1,71 @@
+.page {
+  max-width: 1100px;
+}
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1rem;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.calendarWrap {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+/* FullCalendar overrides */
+.calendarWrap :global(.fc-button) {
+  background: #f1f5f9 !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #374151 !important;
+  font-size: 0.85rem !important;
+  border-radius: 6px !important;
+  box-shadow: none !important;
+}
+
+.calendarWrap :global(.fc-button:hover) {
+  background: #e2e8f0 !important;
+}
+
+.calendarWrap :global(.fc-button-active) {
+  background: #6366f1 !important;
+  color: #fff !important;
+  border-color: #6366f1 !important;
+}
+
+.calendarWrap :global(.fc-toolbar-title) {
+  font-size: 1rem !important;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.calendarWrap :global(.fc-event) {
+  cursor: pointer;
+  border-radius: 4px !important;
+  font-size: 0.78rem !important;
+}

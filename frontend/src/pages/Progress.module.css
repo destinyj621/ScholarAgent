@@ -1,0 +1,99 @@
+.page { max-width: 960px; }
+
+.title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 1.5rem;
+}
+
+.section { margin-bottom: 2rem; }
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.riskTitle { color: #dc2626; border-color: #fecaca; }
+
+.riskCard {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  border-radius: 8px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.riskHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+.riskMeta { font-size: 0.82rem; color: #7f1d1d; margin: 0; }
+
+.courseTag {
+  font-size: 0.72rem;
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.table th {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94a3b8;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.table td {
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #f8fafc;
+  color: #111827;
+}
+
+.table tr:last-child td { border-bottom: none; }
+
+.muted { color: #64748b; }
+
+.miniBar {
+  display: inline-block;
+  width: 80px;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+
+.miniFill {
+  height: 100%;
+  background: #6366f1;
+  border-radius: 9999px;
+}
+
+.pctLabel { font-size: 0.78rem; color: #64748b; }
+
+.over  { color: #dc2626; font-weight: 600; }
+.under { color: #16a34a; font-weight: 600; }
+
+.typeCell { text-transform: capitalize; }
+
+.msg { font-size: 0.9rem; color: #64748b; }
